@@ -1,0 +1,4 @@
+
+GOOGLE_API_KEY : 'GOOGLE_API_KEY'
+output_dir: 'images2'
+input_locations_dir: 'data shapefile/sample.shp'
