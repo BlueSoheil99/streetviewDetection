@@ -1,4 +1,9 @@
 
 GOOGLE_API_KEY : 'GOOGLE_API_KEY'
-output_dir: 'images2'
-input_locations_dir: 'data shapefile/sample.shp'
+ROBOFLOW_API_KEY: 'ROBOFLOW_API_KEY'
+app_url: "https://detect.roboflow.com"
+model_id: "road-objects-qvjnl/2"
+
+download_location: 'images'
+output_location: 'output'
+input_shapefile_dir: 'data shapefile/sample.shp'

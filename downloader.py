@@ -10,7 +10,7 @@ from io import BytesIO
 from configuration import get_config
 
 
-apiKey, output_folder, locations = get_config(['GOOGLE_API_KEY', 'output_dir', 'input_locations_dir'])
+apiKey, output_folder, locations = get_config(['GOOGLE_API_KEY', 'download_location', 'input_shapefile_dir'])
 stop_flag = False
 
 def _download_panorama(lat, lon):
@@ -31,7 +31,7 @@ def _download_panorama(lat, lon):
     return image
 
 
-def _download_street_view_image(api_key, location, pitch, heading=None, fov='90', size="640x640", return_error_code=True):
+def download_street_view_image(api_key, location, pitch, heading=None, fov='90', size="640x640", return_error_code=True):
     '''
     want older pictures? use search_panoramas() and get older pano_ids and use them instead of location in the request
 
@@ -117,7 +117,7 @@ def collect_images(lat, lon,
     location = f'{lat}, {lon}'
     for heading in headings:
         if stop_flag: return
-        responseContent = _download_street_view_image(api_key=apiKey, location=location,
+        responseContent = download_street_view_image(api_key=apiKey, location=location,
                                                       pitch=pitch, heading=heading, fov=fov)
         if responseContent is not None:
             filepath = f"{output_folder}/{lat},{lon}-{heading}.jpg"
@@ -135,11 +135,11 @@ if __name__ == '__main__':
     read the locations here and create images for each point
     '''
     df = gpd.read_file(locations)
-    for index, row in df.iterrows():
+    for index, row in df.iloc[10:].iterrows():
         lat, lon = row.geometry.y, row.geometry.x
         collect_images(lat, lon, pitch='0', fov='100',
                        selective_save=True, if_pano=False,
                        headings=[None, 0, 45, 90, 135, 180, 225, 270, 315])
 
-    # collect_images(lat=37.800868, lon=-122.443323)
-    # collect_images(lat=37.804052, lon=-122.433490)
+    # collect_images(lat=37.800868, lon=-122.443323, if_pano=False, selective_save=False)
+    # collect_images(lat=37.804052, lon=-122.433490, if_pano=False, selective_save=False)
