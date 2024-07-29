@@ -135,7 +135,7 @@ if __name__ == '__main__':
     read the locations here and create images for each point
     '''
     df = gpd.read_file(locations)
-    for index, row in df.iloc[10:].iterrows():
+    for index, row in df.iterrows():
         lat, lon = row.geometry.y, row.geometry.x
         collect_images(lat, lon, pitch='0', fov='100',
                        selective_save=True, if_pano=False,

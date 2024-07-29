@@ -1,45 +1,39 @@
 from downloader import download_street_view_image
 from configuration import get_config
 
+import pandas as pd
+
 from inference_sdk import InferenceHTTPClient
 from PIL import Image, ImageTk
 import tkinter as tk
 from io import BytesIO
 
-apiKeyGoogle, output_folder, locations = get_config(['GOOGLE_API_KEY', 'output_dir', 'input_locations_dir'])
-apiKeyRobo = get_config(['ROBOFLOW_API_KEY'])
-app_url = get_config(['app_url'])
-model_id = get_config(['model_id'])
+import roboflow
+
+
+apiKeyGoogle, output_folder = get_config(['GOOGLE_API_KEY', 'output_location'])
+apiKeyRobo, app_url, project, version = get_config(['ROBOFLOW_API_KEY', 'app_url', 'model_id', 'version'])
+input_locations_dir = get_config(['input_crash_locations_dir'])
 temp_name = 'tempimage.jpg'
 
 CLIENT = InferenceHTTPClient( api_url=app_url, api_key=apiKeyRobo)
 
-
-def _show_image(imageContent, path):
-    global stop_flag
-    img = Image.open(BytesIO(imageContent))
-    # Create a GUI window
-    root = tk.Tk()
-    root.title(path)
-    fixed_x = 20
-    fixed_y = 20
-    root.geometry(f"{img.size[0]}x{img.size[1]+50}+{fixed_x}+{fixed_y}")
-    # Convert the image to PhotoImage
-    img_tk = ImageTk.PhotoImage(img)
-    # Create a label to display the image
-    label = tk.Label(root, image=img_tk)
-    label.pack()
-    # Create a button to save the image
-    save_button = tk.Button(root, text="Save Image", command=lambda: _save_image(img, path, root))
-    save_button.pack(side=tk.RIGHT)
-    root.mainloop()
+rf = roboflow.Roboflow(api_key=apiKeyRobo)
+project = rf.workspace().project("road-objects-qvjnl")
+model = project.version("2").model
 
 
-def make_inference():
-    result = CLIENT.infer(temp_name, model_id=model_id)
-    print(result)
-    dic = {}
-    return dic
+def make_inference( filename):
+    # optionally, change the confidence and overlap thresholds
+    # values are percentages
+    model.confidence = 30
+    model.overlap = 25
+
+    prediction = model.predict(temp_name, confidence=30)
+    # prediction.plot()
+    prediction.save(output_path=f'{output_folder}/{filename}')
+    prediction.json()
+    return prediction
 
 
 def collect_inferences(lat, lon, pitch='0', fov='100',
@@ -56,7 +50,11 @@ def collect_inferences(lat, lon, pitch='0', fov='100',
         if responseContent is not None:
             with open(temp_name, "wb") as file:
                 file.write(responseContent)
-            make_inference()
+            img = Image.open(BytesIO(responseContent))
+            # may want to do batch prediction
+            # https://inference.roboflow.com/inference_helpers/inference_sdk/#parallel-batch-inference
+            predictions = make_inference(f'{location}-{heading}.jpg')
+            print(predictions)
         else:
             print('image download failed')
 
@@ -70,4 +68,7 @@ def collect_inferences(lat, lon, pitch='0', fov='100',
 
 
 if __name__ == '__main__':
-    collect_inferences(lat=37.804052, lon=-122.433490)
+    # collect_inferences(lat=37.804052, lon=-122.433490)
+    df = pd.read_csv('crash_data_unique.csv')
+    for index, row in df.iterrows():
+        collect_inferences(lat=row['Latitude'], lon=row['Longitude'])
