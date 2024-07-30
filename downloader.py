@@ -57,7 +57,7 @@ def download_street_view_image(api_key, location, pitch, heading=None, fov='90',
     if response.status_code == 200:
         # with open(f"{output_folder}/{filename}.jpg", "wb") as file:
         #     file.write(response.content)
-        print("Image downloaded successfully")
+        # print("Image downloaded successfully")
         return response.content
     else:
         print("Failed to download image")
@@ -126,6 +126,7 @@ def collect_images(lat, lon,
             else:
                 with open(filepath, "wb") as file:
                     file.write(responseContent)
+                    print(f'saved {filepath}')
 
 
 
