@@ -19,11 +19,11 @@ input_locations_dir, csv_output_dir = get_config(['input_crash_locations_dir', '
 inference_db_adr = get_config(['inference_database'])[0]
 temp_name = 'tempimage.jpg'
 
-classes_and_confidences = {'intersection':0.3, 'crosswalk':0.5, 'bus-bike lane':0.5, 'two-way road':0.5,
-                           'traffic light':0.5, 'light pole':0.5, 'stop line':0.5, 'stop sign':0.5}
+classes_and_confidences = {'intersection':0.3, 'crosswalk':0.5, 'bus-bike lane':0.5, 'two-way road':0.55,
+                           'traffic light':0.5, 'light pole':0.4, 'stop line':0.5, 'stop sign':0.5}
 
 # classes_and_confidences = {'intersection':(60->17%), 'crosswalk':0.5, 'bus-bike lane':0.5, 'two-way road':0.5,
-#                            'traffic light':0.5, 'light pole':0.5, 'stop line':0.5, 'stop sign':0.5}
+#                            'traffic light':0.5, 'light pole':0.5(104->37), 'stop line':0.5, 'stop sign':0.5(110-47)}
 
 
 # LOADING THE MODEL
@@ -42,9 +42,9 @@ def single_inference(filename, save=True):
         # prediction.plot()
         # prediction.save(output_path=output_path)
         ## better way to plot and save annotations
-        labels = [item["class"] for item in result["predictions"]]
+        labels = [f"{item['class']}: {round(item['confidence'], 2)}" for item in result["predictions"]]
         detections = sv.Detections.from_inference(result)
-        label_annotator = sv.LabelAnnotator()
+        label_annotator = sv.LabelAnnotator(text_scale= 0.3, text_thickness= 1, text_padding= 5)
         box_annotator = sv.BoxAnnotator()
         image = cv2.imread(temp_name)
         annotated_image = box_annotator.annotate(scene=image, detections=detections)
@@ -123,13 +123,15 @@ def update_data(crash_df, inference_json):
     return crash_df
 
 
+
+
 if __name__ == '__main__':
     # collect_inferences(lat=37.804052, lon=-122.433490)
     df = pd.read_csv(input_locations_dir)
 
     # COMMENT THE LINE BELOW IF YOU ALREADY HAVE INFERENCE DATABASE
-    # collect_predictions(df.iloc[14:15], save_adr=inference_db_adr, append=True)
+    # collect_predictions(df.iloc[100:200], save_adr=inference_db_adr, append=True)
 
     inference_json = pd.read_json(inference_db_adr)
     df = update_data(df, inference_json)
-    df.to_csv(csv_output_dir)
+    df.to_csv(csv_output_dir, index=False)

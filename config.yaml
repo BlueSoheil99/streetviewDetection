@@ -1,5 +1,6 @@
 
 GOOGLE_API_KEY : 'GOOGLE_API_KEY'
+OPENAI_API_KEY: 'OPENAI_API_KEY'
 ROBOFLOW_API_KEY: 'ROBOFLOW_API_KEY'
 app_url: "https://detect.roboflow.com"
 model_id: "road-objects-qvjnl"
@@ -12,4 +13,5 @@ output_location: 'output'
 input_shapefile_dir: 'data shapefile/sample.shp'
 input_crash_locations_dir: 'crash_data_unique.csv'
 csv_output_dir: 'crash_data_with_env_inference.csv'
+csv2_output_dir: 'crash_data_with_env_text_inference.csv'
 inference_database: 'inferences.json'
